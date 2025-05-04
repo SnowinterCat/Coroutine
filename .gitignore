@@ -1,0 +1,9 @@
+/.vscode/
+/.xmake/
+/bin/
+/build/
+/vs*/
+
+config.h
+.clang-format
+.clang-tidy
