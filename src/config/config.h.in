@@ -1,0 +1,30 @@
+#ifndef _CORO_CONGIG_H_
+#define _CORO_CONGIG_H_
+
+#include "os.h"
+#include "host.h"
+#include "target.h"
+#include "compiler.h"
+
+#define CORO_VERSION                                                                               \
+    ((((uint32_t)(CORO_VERSION_BUILD)) << 29U) | (((uint32_t)(CORO_VERSION_MAJOR)) << 22U) |       \
+     (((uint32_t)(CORO_VERSION_MINOR)) << 12U) | ((uint32_t)(CORO_VERSION_ALTER)))
+#define CORO_VERSION_STR "${VERSION}.${VERSION_BUILD}"
+#define CORO_VERSION_MAJOR ${VERSION_MAJOR}
+#define CORO_VERSION_MINOR ${VERSION_MINOR}
+#define CORO_VERSION_ALTER ${VERSION_ALTER}
+#define CORO_VERSION_BUILD ${VERSION_BUILD}
+#define CORO_PLAT "${PLAT}"
+#define CORO_ARCH "${ARCH}"
+#define CORO_MODE "${MODE}"
+#define CORO_DEBUG ${DEBUG}
+#define CORO_OS "${OS}"
+
+${define CORO_LUANCH}
+
+#define CORO_BEGIN                                                                                 \
+    namespace CORO                                                                                 \
+    {
+#define CORO_END }
+
+#endif
