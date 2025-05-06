@@ -1,8 +1,14 @@
-#include "luancher/u8main.hpp"
-
-#include <iostream>
+#pragma once
+#include <coroutine/config.h>
+// system header
+// standard header
 #include <coroutine>
-#include <expected>
+#include <utility>
+// 3rd header
+// library header
+
+AUTHOR_NAMESPACE_BEGIN
+CORO_BEGIN
 
 template <typename T>
 class Promise;
@@ -44,12 +50,6 @@ public:
     // suspend
     constexpr auto initial_suspend() noexcept { return std::suspend_always(); }
     constexpr auto final_suspend() noexcept { return std::suspend_always(); }
-
-    PromiseBase(PromiseBase const &) = delete;
-    PromiseBase(PromiseBase &&rhs) noexcept = default;
-
-    PromiseBase &operator=(PromiseBase const &) = delete;
-    PromiseBase &operator=(PromiseBase &&rhs)   = default;
 };
 
 template <typename T>
@@ -116,39 +116,5 @@ public:
     }
 };
 
-CoroutineHandle<std::expected<int, std::error_code>> counter()
-{
-    std::cout << "counter: called\n";
-    for (size_t i = 0; i < 4; ++i) {
-        co_await std::suspend_always{};
-        std::cout << "counter:: resumed (#" << i << ")\n";
-    }
-    co_return 114514;
-    co_return std::unexpected(std::make_error_code(std::errc::io_error));
-}
-
-CoroutineHandle<void> func1()
-{
-    co_return;
-}
-
-int u8main([[maybe_unused]] int argc, [[maybe_unused]] const char *const *argv)
-{
-    std::cout << "hello world\n";
-    auto counter1 = counter();
-    std::cout << "main:    resuming counter\n";
-    counter1->done() ? (void)0 : counter1->resume();
-    counter1->done() ? (void)0 : counter1->resume();
-    counter1->done() ? (void)0 : counter1->resume();
-    std::cout << "here" << std::endl;
-    counter1->done() ? (void)0 : counter1->resume();
-    counter1->done() ? (void)0 : counter1->resume();
-    std::cout << "main:    done\n";
-    if (counter1->done()) {
-        if (*counter1->promise())
-            std::cout << counter1->promise()->value() << std::endl;
-        else
-            std::cout << counter1->promise()->error().message() << std::endl;
-    }
-    return 0;
-}
+CORO_END
+AUTHOR_NAMESPACE_END

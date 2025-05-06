@@ -27,4 +27,8 @@ ${define CORO_LUANCH}
     {
 #define CORO_END }
 
+#define AUTHOR_NAMESPACE_BEGIN                                                                     \
+    namespace swc                                                                                  \
+    {
+#define AUTHOR_NAMESPACE_END }
 #endif
