@@ -44,23 +44,6 @@ struct TaskPromiseImpl : public PromiseBase {
         _value = std::forward<U>(value);
     }
 
-private:
-    value_type _value;
-};
-
-template <typename T, typename E>
-struct TaskPromiseImpl<std::expected<T, E>> : public PromiseBase {
-    using value_type = std::expected<T, E>;
-
-    auto return_value(value_type value) -> void { _value = std::move(value); }
-
-    template <typename U>
-        requires(std::convertible_to<U, value_type>)
-    auto return_value(U &&value) -> void
-    {
-        _value = std::forward<U>(value);
-    }
-
     auto operator*() -> value_type & { return _value; }
     auto operator*() const -> const value_type & { return _value; }
     auto operator->() -> value_type * { return &_value; }
@@ -95,6 +78,11 @@ Task<std::expected<int, std::error_code>> counter()
     co_return std::unexpected(std::make_error_code(std::errc::io_error));
 }
 
+Task<void> func1()
+{
+    co_return;
+}
+
 int u8main([[maybe_unused]] int argc, [[maybe_unused]] const char *const *argv)
 {
     std::cout << "hello world\n";
@@ -103,6 +91,7 @@ int u8main([[maybe_unused]] int argc, [[maybe_unused]] const char *const *argv)
     counter1->done() ? (void)0 : counter1->resume();
     counter1->done() ? (void)0 : counter1->resume();
     counter1->done() ? (void)0 : counter1->resume();
+    std::cout << "here" << std::endl;
     counter1->done() ? (void)0 : counter1->resume();
     counter1->done() ? (void)0 : counter1->resume();
     std::cout << "main:    done\n";
