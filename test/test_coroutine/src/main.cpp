@@ -38,6 +38,9 @@ private:
 
 class PromiseBase {
 public:
+    PromiseBase()  = default;
+    ~PromiseBase() = default;
+
     // exception
     constexpr void unhandled_exception() noexcept {}
 
@@ -45,10 +48,10 @@ public:
     constexpr auto initial_suspend() noexcept { return std::suspend_always(); }
     constexpr auto final_suspend() noexcept { return std::suspend_always(); }
 
-    PromiseBase(PromiseBase const &) = delete;
+    PromiseBase(PromiseBase const &)        = default;
     PromiseBase(PromiseBase &&rhs) noexcept = default;
 
-    PromiseBase &operator=(PromiseBase const &) = delete;
+    PromiseBase &operator=(PromiseBase const &) = default;
     PromiseBase &operator=(PromiseBase &&rhs)   = default;
 };
 
@@ -63,18 +66,6 @@ public:
     auto return_value(U &&value) -> void
     {
         _value = std::forward<U>(value);
-    }
-
-    PromiseImpl(PromiseImpl const &) = delete;
-    PromiseImpl(PromiseImpl &&rhs) noexcept : _value(std::exchange(rhs._value, {})) {}
-
-    PromiseImpl &operator=(PromiseImpl const &) = delete;
-    PromiseImpl &operator=(PromiseImpl &&rhs) noexcept
-    {
-        if (this != &rhs) {
-            std::swap(_value, rhs._value);
-        }
-        return *this;
     }
 
     constexpr auto operator*() -> value_type & { return _value; }
@@ -101,18 +92,6 @@ public:
     auto get_return_object() -> CoroutineHandle<T>
     {
         return CoroutineHandle<T>(handle_type::from_promise(*this));
-    }
-
-    Promise(Promise const &) = delete;
-    Promise(Promise &&rhs) noexcept : PromiseImpl<T>(std::move(rhs)) {}
-
-    Promise &operator=(Promise const &) = delete;
-    Promise &operator=(Promise &&rhs) noexcept
-    {
-        if (this != &rhs) {
-            PromiseImpl<T>::operator=(std::move(rhs));
-        }
-        return *this;
     }
 };
 
