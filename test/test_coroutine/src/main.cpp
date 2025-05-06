@@ -16,9 +16,7 @@ struct Task {
     explicit Task(handle_type handle) : _handle(handle) {}
     ~Task() { _handle ? _handle.destroy() : (void)0; }
 
-    // void resume() { _handle.done() ? (void)0 : _handle.resume(); }
-
-    auto operator->() -> handle_type * { return &_handle; }
+    // auto operator->() -> handle_type * { return &_handle; }
     auto operator->() const -> const handle_type * { return &_handle; }
 
 private:
@@ -65,6 +63,8 @@ struct TaskPromiseImpl<std::expected<T, E>> : public PromiseBase {
 
     auto operator*() -> value_type & { return _value; }
     auto operator*() const -> const value_type & { return _value; }
+    auto operator->() -> value_type * { return &_value; }
+    auto operator->() const -> const value_type * { return &_value; }
 
 private:
     value_type _value;
@@ -108,9 +108,9 @@ int u8main([[maybe_unused]] int argc, [[maybe_unused]] const char *const *argv)
     std::cout << "main:    done\n";
     if (counter1->done()) {
         if (*counter1->promise())
-            std::cout << (*counter1->promise()).value() << std::endl;
+            std::cout << counter1->promise()->value() << std::endl;
         else
-            std::cout << (*counter1->promise()).error().message() << std::endl;
+            std::cout << counter1->promise()->error().message() << std::endl;
     }
     return 0;
 }
