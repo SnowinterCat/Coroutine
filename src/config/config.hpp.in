@@ -1,7 +1,7 @@
 #pragma once
-#include "os.h"
-#include "host.h"
-#include "compiler.h"
+#include <coroutine/__config/os.hpp>
+#include <coroutine/__config/compiler.hpp>
+#include <coroutine/__config/platform.hpp>
 
 #define SWC_CORO_VERSION                                                                           \
     ((((uint32_t)(SWC_CORO_VERSION_BUILD)) << 29U) |                                               \
