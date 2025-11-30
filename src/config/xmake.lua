@@ -3,12 +3,11 @@ target("config")
 
     add_includedirs("include", {public = true})
     add_headerfiles("include/(**)")
-    -- add_headerfiles("src/(**.hpp)", {install = false})
-    -- add_files("src/**.cpp")
 
     set_configdir("include/coroutine")
-    if has_config("luanch") then
-        set_configvar("CORO_LUANCH", get_config("luanch"))
-    end
-    add_configfiles("config.h.in", {public = true})
+    set_configvar("SWC_CORO_SHARED_BUILD", is_kind("shared") and true or false)
+    -- if has_config("luanch") then
+    --     set_configvar("CORO_LUANCH", get_config("luanch"))
+    -- end
+    add_configfiles("*.in", {public = true})
 target_end()

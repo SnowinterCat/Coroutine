@@ -28,9 +28,9 @@ option("outputdir",    {showmenu = true, default = path.join(os.projectdir(), "b
 option("buildversion", {showmenu = true, default = 0, type = "number"})
 
 includes("lua/check")
-check_macros("has_std_out_ptr",  "__cpp_lib_out_ptr",  {languages = stdcxx(), includes = "memory"})
-check_macros("has_std_expected", "__cpp_lib_expected", {languages = stdcxx(), includes = "expected"})
-check_macros("has_std_runtime_format", "__cpp_lib_format >= 202311L", {languages = stdcxx(), includes = "format"})
+check_macros("has_std_out_ptr",  "__cpp_lib_out_ptr",  {languages = stdcxx(), includes = "version"})
+check_macros("has_std_expected", "__cpp_lib_expected", {languages = stdcxx(), includes = "version"})
+check_macros("has_std_runtime_format", "__cpp_lib_format >= 202311L", {languages = stdcxx(), includes = "version"})
 
 -- 隐藏设置、隐藏目标、打包命令
 includes("lua/hideoptions.lua")

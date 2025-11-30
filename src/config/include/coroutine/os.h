@@ -1,5 +1,4 @@
-#ifndef _CORO_OS_H_
-#define _CORO_OS_H_
+#pragma once
 
 #if defined(_WIN32)
     #ifndef WIN32_LEAN_AND_MEAN
@@ -14,6 +13,4 @@
     #ifndef _UNICODE
         #define _UNICODE
     #endif
-#endif
-
 #endif
