@@ -1,8 +1,5 @@
-#include "luancher/u8main.hpp"
-
-#include <iostream>
+#include <print>
 #include <coroutine>
-#include <expected>
 
 template <typename T>
 class Promise;
@@ -17,29 +14,48 @@ public:
     explicit CoroutineHandle(handle_type handle) : _handle(handle) {}
     ~CoroutineHandle() { _handle ? _handle.destroy() : (void)0; }
 
-    CoroutineHandle(CoroutineHandle const &) = delete;
-    CoroutineHandle(CoroutineHandle &&rhs) noexcept : _handle(std::exchange(rhs._handle, {})) {}
+    CoroutineHandle(CoroutineHandle const &)        = delete;
+    CoroutineHandle(CoroutineHandle &&rhs) noexcept = default;
 
-    CoroutineHandle &operator=(CoroutineHandle const &) = delete;
-    CoroutineHandle &operator=(CoroutineHandle &&rhs) noexcept
-    {
-        if (this != &rhs) {
-            std::swap(_handle, rhs._handle);
-        }
-        return *this;
-    }
+    CoroutineHandle &operator=(CoroutineHandle const &)        = delete;
+    CoroutineHandle &operator=(CoroutineHandle &&rhs) noexcept = default;
 
-    // constexpr auto operator->() -> handle_type * { return &_handle; }
     constexpr auto operator->() const -> const handle_type * { return &_handle; }
 
-private:
+    //
+    constexpr bool await_ready() const noexcept
+    {
+        this->_handle.resume();
+        std::println("await_ready called");
+        return false;
+    }
+    template <typename U>
+    constexpr auto await_suspend(std::coroutine_handle<Promise<U>> caller) noexcept -> void
+    {
+        std::println("await_suspend called, caller address: {}",
+                     static_cast<void *>(caller.address()));
+    }
+    constexpr auto await_resume() -> value_type
+    {
+        std::println("await_resume called");
+        // _caller.resume();
+        return _handle.promise().get();
+    }
+
+protected:
     handle_type _handle;
 };
 
-class PromiseBase {
+template <typename T>
+class Promise {
 public:
-    PromiseBase()  = default;
-    ~PromiseBase() = default;
+    using handle_type = std::coroutine_handle<Promise>;
+    using value_type  = T;
+
+    auto get_return_object() -> CoroutineHandle<value_type>
+    {
+        return CoroutineHandle<value_type>(handle_type::from_promise(*this));
+    }
 
     // exception
     constexpr void unhandled_exception() noexcept {}
@@ -48,18 +64,7 @@ public:
     constexpr auto initial_suspend() noexcept { return std::suspend_always(); }
     constexpr auto final_suspend() noexcept { return std::suspend_always(); }
 
-    PromiseBase(PromiseBase const &)        = default;
-    PromiseBase(PromiseBase &&rhs) noexcept = default;
-
-    PromiseBase &operator=(PromiseBase const &) = default;
-    PromiseBase &operator=(PromiseBase &&rhs)   = default;
-};
-
-template <typename T>
-class PromiseImpl : public PromiseBase {
-public:
-    using value_type = T;
-
+    // return
     auto return_value(value_type value) -> void { _value = std::move(value); }
     template <typename U>
         requires(std::convertible_to<U, value_type>)
@@ -68,66 +73,47 @@ public:
         _value = std::forward<U>(value);
     }
 
-    constexpr auto operator*() -> value_type & { return _value; }
-    constexpr auto operator*() const -> const value_type & { return _value; }
-    constexpr auto operator->() -> value_type * { return &_value; }
-    constexpr auto operator->() const -> const value_type * { return &_value; }
+    constexpr auto get() -> value_type & { return _value; }
+    constexpr auto get() const -> const value_type & { return _value; }
 
-private:
+protected:
     value_type _value;
 };
 
-template <>
-class PromiseImpl<void> : public PromiseBase {
-public:
-    auto return_void() const noexcept {}
-    auto value() const noexcept {}
-};
+CoroutineHandle<std::tuple<bool, int>> coro1()
+{
+    std::println("hello coroutine! This is coro1");
+    co_await std::suspend_always{};
+    std::println("This is coro1 after first co_await");
+    co_return std::make_tuple(true, 1);
+}
 
-template <typename T>
-class Promise final : public PromiseImpl<T> {
-public:
-    using handle_type = std::coroutine_handle<Promise>;
+CoroutineHandle<std::tuple<bool, int>> coro2()
+{
+    bool flag   = false;
+    int  number = 0;
 
-    auto get_return_object() -> CoroutineHandle<T>
+    std::println("hello coroutine! This is coro2");
+    std::tie(flag, number) = co_await coro1();
+    std::println("flag: {}, number: {}", flag, number);
+    co_return std::make_tuple(true, 2);
+}
+
+int main()
+{
+    auto handle = coro2();
+    std::println("before resume!");
     {
-        return CoroutineHandle<T>(handle_type::from_promise(*this));
+        auto [flag, number] = handle->promise().get();
+        std::println("isdone: {}, flag: {}, number: {}", handle->done(), flag, number);
     }
-};
 
-CoroutineHandle<std::expected<int, std::error_code>> counter()
-{
-    std::cout << "counter: called\n";
-    for (size_t i = 0; i < 4; ++i) {
-        co_await std::suspend_always{};
-        std::cout << "counter:: resumed (#" << i << ")\n";
-    }
-    co_return 114514;
-    co_return std::unexpected(std::make_error_code(std::errc::io_error));
-}
-
-CoroutineHandle<void> func1()
-{
-    co_return;
-}
-
-int u8main([[maybe_unused]] int argc, [[maybe_unused]] const char *const *argv)
-{
-    std::cout << "hello world\n";
-    auto counter1 = counter();
-    std::cout << "main:    resuming counter\n";
-    counter1->done() ? (void)0 : counter1->resume();
-    counter1->done() ? (void)0 : counter1->resume();
-    counter1->done() ? (void)0 : counter1->resume();
-    std::cout << "here" << std::endl;
-    counter1->done() ? (void)0 : counter1->resume();
-    counter1->done() ? (void)0 : counter1->resume();
-    std::cout << "main:    done\n";
-    if (counter1->done()) {
-        if (*counter1->promise())
-            std::cout << counter1->promise()->value() << std::endl;
-        else
-            std::cout << counter1->promise()->error().message() << std::endl;
+    for (size_t i = 0; i < 3; ++i) {
+        if (!handle->done()) {
+            handle->resume();
+            auto [flag, number] = handle->promise().get();
+            std::println("isdone: {}, flag: {}, number: {}", handle->done(), flag, number);
+        }
     }
     return 0;
 }

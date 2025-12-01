@@ -1,5 +1,5 @@
 #pragma once
-#include <coroutine/config.h>
+#include <coroutine/config.hpp>
 // system header
 // standard header
 #include <coroutine>
@@ -8,7 +8,7 @@
 // library header
 
 AUTHOR_NAMESPACE_BEGIN
-CORO_BEGIN
+SWC_CORO_BEGIN
 
 template <typename T>
 class Promise;
@@ -101,5 +101,5 @@ public:
     }
 };
 
-CORO_END
+SWC_CORO_END
 AUTHOR_NAMESPACE_END
